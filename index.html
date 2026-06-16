@@ -234,6 +234,23 @@ tbody tr:hover td{background:#F9FBF9}
 .step-text{font-size:.84rem;color:var(--text-2);line-height:1.45}
 .step-text strong{color:var(--primary)}
 
+/* ── SETTINGS GEAR ── */
+.btn-gear{
+  width:36px;height:36px;padding:0;border-radius:8px;
+  background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);
+  font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .18s ease;
+}
+.btn-gear:hover{background:rgba(255,255,255,.22)}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;padding:1.5rem 2rem 2rem;
+  font-size:.8rem;color:var(--text-3);
+}
+.footer a{color:var(--primary-light);text-decoration:none;font-weight:500}
+.footer a:hover{color:var(--primary)}
+
 /* ── RESPONSIVE ── */
 @media(max-width:1050px){.mid{grid-template-columns:1fr}}
 @media(max-width:700px){
@@ -262,6 +279,7 @@ tbody tr:hover td{background:#F9FBF9}
     <button class="btn btn-ghost" onclick="openAI()">🤖 AI Insights</button>
     <button class="btn btn-ghost" onclick="exportPDF()">📄 Export PDF</button>
     <button class="btn btn-gold always" onclick="focusForm()">＋ Add Transaction</button>
+    <button class="btn-gear" onclick="openSettings()" title="Settings">⚙️</button>
   </div>
 </header>
 
@@ -432,21 +450,34 @@ tbody tr:hover td{background:#F9FBF9}
       <div class="mtitle">🤖 AI Financial Insights</div>
       <button class="mclose" onclick="closeModal('aiOverlay')">✕</button>
     </div>
-    <div class="api-box">
-      <div class="api-box-label">Anthropic API Key</div>
-      <div class="api-row">
-        <input type="password" id="apiKey" placeholder="sk-ant-api03-…">
-        <button class="btn btn-gold" style="padding:.55rem 1rem;font-size:.83rem" onclick="saveKey()">Save</button>
-      </div>
-      <div class="api-hint">Stored locally · never transmitted except to api.anthropic.com</div>
-    </div>
     <button class="btn btn-green btn-block" style="margin-bottom:1.4rem" onclick="runAI()">✨ Analyze My Finances</button>
     <div id="aiOut"></div>
   </div>
 </div>
 
+<!-- ═══════════════════ SETTINGS MODAL ═══════════════════ -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" style="max-width:460px">
+    <div class="mhead">
+      <div class="mtitle">⚙️ Settings</div>
+      <button class="mclose" onclick="closeModal('settingsOverlay')">✕</button>
+    </div>
+    <div class="api-box">
+      <div class="api-box-label">AI API Key</div>
+      <div class="api-row">
+        <input type="password" id="settingsApiKey" placeholder="sk-ant-api03-…">
+        <button class="btn btn-gold" style="padding:.55rem 1rem;font-size:.83rem" onclick="saveKey()">Save</button>
+      </div>
+      <div class="api-hint">Your API key is saved locally in your browser for convenience and sent only to the AI service. It is never shared with anyone.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ TOAST ═══════════════════ -->
 <div class="toast" id="toast"></div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">Built by <a href="https://sherry-tan.vercel.app" target="_blank" rel="noopener">Sherry Tan</a> | <a href="https://sherry-tan.vercel.app" target="_blank" rel="noopener">sherry-tan.vercel.app</a></footer>
 
 <script>
 // ──────────────────────────────────────────────
@@ -474,9 +505,6 @@ let currentType = 'income';
 // ──────────────────────────────────────────────
 (function init() {
   document.getElementById('fDate').valueAsDate = new Date();
-  if (localStorage.getItem('anthropicApiKey')) {
-    document.getElementById('apiKey').value = localStorage.getItem('anthropicApiKey');
-  }
   if (txns.length === 0) loadDemo();
   update();
 })();
@@ -686,22 +714,24 @@ function drawChart() {
 // ──────────────────────────────────────────────
 function openAI() {
   document.getElementById('aiOverlay').classList.add('open');
-  const stored = localStorage.getItem('anthropicApiKey');
-  if (stored) document.getElementById('apiKey').value = stored;
   document.getElementById('aiOut').innerHTML = '';
 }
 
+function openSettings() {
+  const stored = localStorage.getItem('anthropicApiKey');
+  if (stored) document.getElementById('settingsApiKey').value = stored;
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+
 function saveKey() {
-  const k = document.getElementById('apiKey').value.trim();
-  if (k) { localStorage.setItem('anthropicApiKey', k); toast('API key saved', 'ok'); }
+  const k = document.getElementById('settingsApiKey').value.trim();
+  if (k) { localStorage.setItem('anthropicApiKey', k); toast('API key saved', 'ok'); closeModal('settingsOverlay'); }
 }
 
 async function runAI() {
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key)           { toast('Enter your Anthropic API key first', 'err'); return; }
+  const key = localStorage.getItem('anthropicApiKey');
+  if (!key)           { toast('Add your API key via the ⚙️ settings first', 'err'); return; }
   if (!txns.length)   { toast('Add some transactions first', 'err'); return; }
-
-  localStorage.setItem('anthropicApiKey', key);
 
   const out = document.getElementById('aiOut');
   out.innerHTML = '<div class="ai-loading"><div class="spinner"></div>Analyzing your finances…</div>';
